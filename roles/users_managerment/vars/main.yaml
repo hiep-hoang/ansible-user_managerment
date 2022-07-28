@@ -1,0 +1,4 @@
+## default variable
+ssh_key_name: ".ssh/id_rsa"
+ssh_key_length: 2048
+home_path: "/home"

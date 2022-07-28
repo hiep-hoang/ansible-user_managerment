@@ -1,0 +1,10 @@
+- hosts: local
+  become: true
+  vars_files:
+    - /home/ansible/roles/users_managerment/vars/main.yaml
+    - /home/ansible/inventories/group_vars/all_vars.yaml
+  tasks:
+    - name: Run tasks create_user from Users_managerment
+      include_tasks:
+        file: /home/ansible/roles/users_managerment/tasks/create_user.yaml
+      tags: new_users

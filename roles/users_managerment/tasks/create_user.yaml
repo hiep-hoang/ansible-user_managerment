@@ -1,0 +1,56 @@
+- name: Create new users
+  user:
+    name: "{{ user_name }}"
+    groups: "{{ group_name }}"
+    generate_ssh_key: yes    
+    ssh_key_bits: "{{ ssh_key_length }}"
+    ssh_key_file: "{{ ssh_key_name }}"
+    createhome: yes        # Defaults to yes
+    home: "{{ home_path }}/{{ user_name }}" 
+  tags: new_users
+
+- name: Create /etc/sudoers.d/{{ user_name }} file
+  file:
+    path: /etc/sudoers.d/{{ user_name }}
+    state: touch
+  tags: new_users
+
+- name: Configure a pass-wordless authentication & execution for {{ user_name }}
+  lineinfile:
+    path: /etc/sudoers.d/{{ user_name }}
+    line: "{{ user_name }} ALL=(ALL) NOPASSWD: ALL"
+    state: present
+    mode: 0440
+    create: yes
+    validate: 'visudo -cf %s'
+  tags: new_users
+
+- name: Add user to sudoers file
+  lineinfile:
+    path: /etc/sudoers
+    regexp: '^{{ user_name }}'
+    line: '{{ user_name }} ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+  tags: new_users
+
+- name: Get SSH public key file contents
+  command: "cat {{ home_path }}/{{ user_name }}/{{ ssh_key_name}}.pub"
+  register: publickey
+  tags: new_users
+  
+- name: Install the SSH public key on managed host for {{ user_name }}
+  authorized_key:
+    user: "{{ user_name }}"
+    state: present
+    key: "{{ publickey.stdout }}"
+  tags: new_users
+
+- name: Get SSH private key file contents
+  command: "cat {{ home_path }}/{{ user_name }}/{{ ssh_key_name}}"
+  register: privatekey
+  tags: new_users
+
+- name: Show SSH private key contents
+  debug:
+    var: privatekey.stdout
+  tags: new_users

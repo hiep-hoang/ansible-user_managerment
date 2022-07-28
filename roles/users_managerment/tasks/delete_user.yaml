@@ -1,0 +1,19 @@
+- name: Remove the user '{{ user_name }}'
+  user:
+    name: "{{ user_name }}"
+    state: absent
+    remove: yes
+  tags: delete_users
+
+- name: Delete /etc/sudoers.d/{{ user_name }} file
+  file:
+    path: /etc/sudoers.d/{{ user_name }}
+    state: absent
+  tags: delete_users
+
+- name: Delete user from sudoers file
+  lineinfile:
+    path: /etc/sudoers
+    regexp: '^{{ user_name }}'
+    state: absent
+  tags: delete_users
